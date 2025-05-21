@@ -9,6 +9,8 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
+  <app-offline-indicator [isOnline]="isOnline"></app-offline-indicator>
+  
   <ion-card *ngIf="!posts.length" class="ion-text-center ion-padding">
     <ion-card-header>
       <ion-card-title>No hay posts todavía</ion-card-title>

@@ -1,25 +1,31 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ToastController, IonicModule } from '@ionic/angular';
 import { AuthService } from '../services/auth.service';
 import { PostService } from '../services/post.service';
 import { BlogService } from '../services/blog.service';
+import { OfflineService } from '../services/offline.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { OfflineIndicatorComponent } from '../components/offline-indicator/offline-indicator.component';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-posts',
   templateUrl: './posts.page.html',
   styleUrls: ['./posts.page.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, RouterModule]
+  imports: [CommonModule, FormsModule, IonicModule, RouterModule, OfflineIndicatorComponent]
 })
-export class PostsPage implements OnInit {
+export class PostsPage implements OnInit, OnDestroy {
   posts: any[] = [];
   blogId: number = 0;
   blogName: string = '';
   blogHandle: string = '';
   showModal = false;
+  isOnline: boolean = navigator.onLine;
+  private onlineStatusSubscription: Subscription | null = null;
+  
   newPost = {
     title: '',
     content: '',
@@ -27,23 +33,27 @@ export class PostsPage implements OnInit {
     blog: {
       id: 0
     }
-  };
-  constructor(
+  };  constructor(
     private postService: PostService,
     private blogService: BlogService,
     private authService: AuthService,
+    private offlineService: OfflineService,
     private route: ActivatedRoute,
     private router: Router,
     private toastController: ToastController
-  ) { }
-  ngOnInit() {
+  ) { }  ngOnInit() {
     // Verificar si el usuario está autenticado
     if (!this.authService.isAuthenticated()) {
       this.router.navigate(['/login']);
       return;
     }
+    
+    // Suscribirse al estado de conexión
+    this.onlineStatusSubscription = this.offlineService.getOnlineStatus().subscribe(isOnline => {
+      this.isOnline = isOnline;
+    });
 
-  // Obtener el ID del blog de los parámetros de la URL
+    // Obtener el ID del blog de los parámetros de la URL
     this.route.queryParams.subscribe({
       next: (params) => {
         this.blogId = +params['blogId'];
@@ -57,6 +67,13 @@ export class PostsPage implements OnInit {
         this.loadPosts();
       }
     });
+  }
+  
+  ngOnDestroy() {
+    if (this.onlineStatusSubscription) {
+      this.onlineStatusSubscription.unsubscribe();
+      this.onlineStatusSubscription = null;
+    }
   }
 
   // Cargar información del blog actual

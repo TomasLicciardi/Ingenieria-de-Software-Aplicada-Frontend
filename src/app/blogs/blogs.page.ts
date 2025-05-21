@@ -1,40 +1,58 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { ToastController, IonicModule } from '@ionic/angular';
 import { AuthService } from '../services/auth.service';
 import { BlogService } from '../services/blog.service';
+import { OfflineService } from '../services/offline.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { OfflineIndicatorComponent } from '../components/offline-indicator/offline-indicator.component';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-blogs',
   templateUrl: './blogs.page.html',
   styleUrls: ['./blogs.page.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, RouterModule]
+  imports: [CommonModule, FormsModule, IonicModule, RouterModule, OfflineIndicatorComponent]
 })
-export class BlogsPage implements OnInit {
+export class BlogsPage implements OnInit, OnDestroy {
   blogs: any[] = [];
   showModal = false;
+  isOnline: boolean = navigator.onLine;
+  private onlineStatusSubscription: Subscription | null = null;
+  
   newBlog = {
     name: '',
     handle: ''
   };
-
   constructor(
     private blogService: BlogService,
     private authService: AuthService,
+    private offlineService: OfflineService,
     private router: Router,
     private toastController: ToastController
   ) { }
-
   ngOnInit() {
     // Verificar si el usuario está autenticado
     if (!this.authService.isAuthenticated()) {
       this.router.navigate(['/login']);
       return;
     }
+    
+    // Suscribirse al estado de conexión
+    this.onlineStatusSubscription = this.offlineService.getOnlineStatus().subscribe(isOnline => {
+      this.isOnline = isOnline;
+    });
+    
     this.loadBlogs();
+  }
+  
+  ngOnDestroy() {
+    if (this.onlineStatusSubscription) {
+      this.onlineStatusSubscription.unsubscribe();
+      this.onlineStatusSubscription = null;
+    }
   }
 
   ionViewWillEnter() {
