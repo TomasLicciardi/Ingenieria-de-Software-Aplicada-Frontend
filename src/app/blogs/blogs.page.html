@@ -1,0 +1,54 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Blogs</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="logout()">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <ion-list>
+    <ion-item *ngFor="let blog of blogs" (click)="goToPosts(blog.id)">
+      <ion-label>
+        <h2>{{ blog.name }}</h2>
+        <p>{{ blog.handle }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="showAddBlogModal()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <!-- Modal para agregar blog -->
+  <ion-modal [isOpen]="showModal">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Nuevo Blog</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="showModal = false">Cancelar</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <ion-item>
+          <ion-label position="floating">Nombre</ion-label>
+          <ion-input [(ngModel)]="newBlog.name"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Handle</ion-label>
+          <ion-input [(ngModel)]="newBlog.handle"></ion-input>
+        </ion-item>
+        <ion-button expand="block" class="ion-margin-top" (click)="createBlog()">
+          Guardar
+        </ion-button>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>
