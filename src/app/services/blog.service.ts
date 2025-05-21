@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
 
@@ -26,11 +26,24 @@ export class BlogService {
     }
     
     return new HttpHeaders(headers);
-  }
-
-  // Obtener todos los blogs
+  }  // Obtener todos los blogs ordenados por fecha de creación (más reciente primero)
+  // y filtrados para mostrar solo los blogs del usuario actual
   getBlogs(): Observable<any[]> {
-    return this.http.get<any[]>(this.apiUrl, { headers: this.getHeaders() });
+    return this.http.get<any[]>(`${this.apiUrl}?sort=createdDate,desc`, { headers: this.getHeaders() })
+      .pipe(
+        map(blogs => {
+          const userLogin = this.authService.getUserLogin();
+          // Si tenemos userLogin, filtramos los blogs que pertenecen al usuario actual
+          // Nota: En un sistema real, esto debería hacerse en el backend
+          if (userLogin) {
+            // Aquí simulamos el filtrado por usuario, ya que no hay relación directa en el modelo
+            // En una implementación real, esto debería ser manejado por el backend
+            const userHandle = userLogin.toLowerCase();
+            return blogs.filter(blog => blog.handle.includes(userHandle));
+          }
+          return blogs;
+        })
+      );
   }
 
   // Obtener un blog por ID

@@ -3,6 +3,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ToastController, IonicModule } from '@ionic/angular';
 import { AuthService } from '../services/auth.service';
 import { PostService } from '../services/post.service';
+import { BlogService } from '../services/blog.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -16,7 +17,10 @@ import { FormsModule } from '@angular/forms';
 export class PostsPage implements OnInit {
   posts: any[] = [];
   blogId: number = 0;
-  showModal = false;newPost = {
+  blogName: string = '';
+  blogHandle: string = '';
+  showModal = false;
+  newPost = {
     title: '',
     content: '',
     date: new Date().toISOString(),
@@ -24,9 +28,9 @@ export class PostsPage implements OnInit {
       id: 0
     }
   };
-
   constructor(
     private postService: PostService,
+    private blogService: BlogService,
     private authService: AuthService,
     private route: ActivatedRoute,
     private router: Router,
@@ -39,7 +43,7 @@ export class PostsPage implements OnInit {
       return;
     }
 
-    // Obtener el ID del blog de los parámetros de la URL
+  // Obtener el ID del blog de los parámetros de la URL
     this.route.queryParams.subscribe({
       next: (params) => {
         this.blogId = +params['blogId'];
@@ -47,7 +51,27 @@ export class PostsPage implements OnInit {
           this.router.navigate(['/blogs']);
           return;
         }
+        // Cargar información del blog
+        this.loadBlogInfo();
+        // Cargar posts de este blog
         this.loadPosts();
+      }
+    });
+  }
+
+  // Cargar información del blog actual
+  loadBlogInfo() {
+    this.blogService.getBlog(this.blogId).subscribe({
+      next: (blog) => {
+        this.blogName = blog.name;
+        this.blogHandle = blog.handle;
+      },
+      error: (error) => {
+        console.error('Error al cargar información del blog:', error);
+        if (error.status === 404) {
+          this.presentToast('Blog no encontrado', 'danger');
+          this.router.navigate(['/blogs']);
+        }
       }
     });
   }

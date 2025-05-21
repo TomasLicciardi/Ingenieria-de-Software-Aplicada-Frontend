@@ -3,11 +3,20 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/blogs"></ion-back-button>
     </ion-buttons>
-    <ion-title>Posts</ion-title>
+    <ion-title>{{ blogName || 'Posts' }}</ion-title>
+    <ion-note slot="end" *ngIf="blogHandle">{{ blogHandle }}</ion-note>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
+  <ion-card *ngIf="!posts.length" class="ion-text-center ion-padding">
+    <ion-card-header>
+      <ion-card-title>No hay posts todavía</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      ¡Sé el primero en crear un post para este blog!
+    </ion-card-content>
+  </ion-card>
   <ion-list>
     <ion-item *ngFor="let post of posts">
       <ion-label>
@@ -34,15 +43,14 @@
             <ion-button (click)="showModal = false">Cancelar</ion-button>
           </ion-buttons>
         </ion-toolbar>
-      </ion-header>
-      <ion-content class="ion-padding">
+      </ion-header>      <ion-content class="ion-padding">
         <ion-item>
           <ion-label position="floating">Título</ion-label>
-          <ion-input [(ngModel)]="newPost.title"></ion-input>
+          <ion-input [(ngModel)]="newPost.title" ></ion-input>
         </ion-item>
         <ion-item>
           <ion-label position="floating">Contenido</ion-label>
-          <ion-textarea [(ngModel)]="newPost.content" rows="5"></ion-textarea>
+          <ion-textarea [(ngModel)]="newPost.content" rows="5" ></ion-textarea>
         </ion-item>
         <ion-button expand="block" class="ion-margin-top" (click)="createPost()">
           Publicar

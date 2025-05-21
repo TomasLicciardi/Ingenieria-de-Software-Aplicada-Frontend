@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
 
@@ -27,10 +27,9 @@ export class PostService {
     
     return new HttpHeaders(headers);
   }
-
-  // Obtener todos los posts
+  // Obtener todos los posts ordenados por fecha (más reciente primero)
   getPosts(): Observable<any[]> {
-    return this.http.get<any[]>(this.apiUrl, { headers: this.getHeaders() });
+    return this.http.get<any[]>(`${this.apiUrl}?sort=date,desc`, { headers: this.getHeaders() });
   }
 
   // Obtener un post por ID
@@ -51,10 +50,17 @@ export class PostService {
   // Eliminar un post
   deletePost(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
-  }
-
-  // Obtener posts de un blog específico
+  }  // Obtener posts de un blog específico ordenados por fecha (más reciente primero)
+  // y filtrando para asegurar que pertenecen al usuario actual
   getPostsByBlog(blogId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}?blogId.equals=${blogId}`, { headers: this.getHeaders() });
+    // Usamos el parámetro blog.id.equals para filtrar específicamente por ese blog ID
+    return this.http.get<any[]>(`${this.apiUrl}?blog.id.equals=${blogId}&sort=date,desc`, { headers: this.getHeaders() })
+      .pipe(
+        map(posts => {
+          // Filtrar posts que coincidan exactamente con el blogId solicitado
+          // Esto es una doble protección por si la API no filtra correctamente
+          return posts.filter(post => post.blog && post.blog.id === blogId);
+        })
+      );
   }
 }

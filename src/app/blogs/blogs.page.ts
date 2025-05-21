@@ -60,9 +60,13 @@ export class BlogsPage implements OnInit {
   goToPosts(blogId: number) {
     this.router.navigate(['/posts'], { queryParams: { blogId } });
   }
-
   showAddBlogModal() {
-    this.newBlog = { name: '', handle: '' };
+    const userLogin = this.authService.getUserLogin();
+    // Inicializar con el nombre de usuario para asociar blogs al usuario actual
+    this.newBlog = { 
+      name: '', 
+      handle: userLogin ? userLogin.toLowerCase() + '-' : ''
+    };
     this.showModal = true;
   }
   createBlog() {
